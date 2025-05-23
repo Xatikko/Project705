@@ -1,99 +1,90 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include "filesystem.h"
+#include <stdlib.h>
 
-#define MAX_FILENAME_LENGTH 255
+void create_file(char *path) {
+    FILE *file = fopen(path, "w");
+    if (file == NULL) {
+        printf("Ошибка при создании файла\n");
+        return;
+    }
+    fclose(file);
+    printf("Файл создан: %s\n", path);
+}
 
-// Компиляция: gcc main.c filesystem.c -o fs_program
-int main()
-{
+void delete_file(char *path) {
+    if (remove(path) {
+        printf("Ошибка при удалении файла\n");
+        return;
+    }
+    printf("Файл удалён: %s\n", path);
+}
+
+void edit_file(char *path) {
+    printf("Введите текст для файла (Ctrl+D для завершения):\n");
+    
+    FILE *file = fopen(path, "w");
+    if (file == NULL) {
+        printf("Ошибка при открытии файла\n");
+        return;
+    }
+    
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), stdin)) {
+        fputs(buffer, file);
+    }
+    
+    fclose(file);
+    printf("Файл изменён: %s\n", path);
+}
+
+void view_file(char *path) {
+    FILE *file = fopen(path, "r");
+    if (file == NULL) {
+        printf("Ошибка при открытии файла\n");
+        return;
+    }
+    
+    char buffer[256];
+    printf("Содержимое файла %s:\n", path);
+    while (fgets(buffer, sizeof(buffer), file)) {
+        printf("%s", buffer);
+    }
+    
+    fclose(file);
+}
+
+int main() {
+    printf("Добро пожаловать в SimpleFS!\n");
+    printf("Доступные команды: создать, удалить, изменить, посмотреть\n");
+    
+    char input[256];
+    char command[50];
+    char path[200];
+    
     while (1) {
-        int file_action;
-        printf("\nВыберите действие с файлом:\n"
-               "1 - Открыть/Создать файл\n"
-               "2 - Прочитать файл\n"
-               "3 - Удалить файл\n"
-               "4 - Добавить новый файл\n"
-               "5 - Обновить файл\n"
-               "0 - Выйти из программы\n"
-               "> ");
-        scanf("%d", &file_action);
+        printf("> ");
+        if (fgets(input, sizeof(input), stdin) == NULL) break;
         
-        // Очистка буфера ввода
-        while(getchar() != '\n');
+        // Удаляем символ новой строки
+        input[strcspn(input, "\n")] = 0;
         
-        if (file_action == 0) {
-            printf("Выход из программы...\n");
-            break;
-        }
+        int parsed = sscanf(input, "%49s %199[^\n]", command, path);
         
-        char filename[MAX_FILENAME_LENGTH];
-        printf("Введите имя файла: ");
-        fgets(filename, MAX_FILENAME_LENGTH, stdin);
-        filename[strcspn(filename, "\n")] = '\0'; // Удаление символа новой строки
+        if (parsed == 0) continue;
         
-        FILE* fp = NULL;
-        char* result = NULL;
-        char content[1024];
-        
-        switch(file_action) {
-            case 1:
-                fp = open_or_create_fs(filename);
-                if (fp) {
-                    printf("Файл '%s' успешно открыт/создан\n", filename);
-                    fclose(fp);
-                } else {
-                    printf("Ошибка при работе с файлом '%s'\n", filename);
-                }
-                break;
-                
-            case 2:
-                result = view_file(filename);
-                if (result) {
-                    printf("\nСодержимое файла '%s':\n%s\n", filename, result);
-                    free(result);
-                } else {
-                    printf("Файл '%s' не найден или ошибка чтения\n", filename);
-                }
-                break;
-                
-            case 3:
-                if (delete_file(filename) == 0) {
-                    printf("Файл '%s' успешно удален\n", filename);
-                } else {
-                    printf("Ошибка при удалении файла '%s'\n", filename);
-                }
-                break;
-                
-            case 4:
-                printf("Введите содержимое файла (окончание ввода - Ctrl+D):\n");
-                fgets(content, sizeof(content), stdin;
-                content[strcspn(content, "\n")] = '\0';
-                
-                if (create_file(filename, content) {
-                    printf("Файл '%s' успешно создан\n", filename);
-                } else {
-                    printf("Ошибка при создании файла '%s'\n", filename);
-                }
-                break;
-                
-            case 5:
-                printf("Введите новое содержимое файла (окончание ввода - Ctrl+D):\n");
-                fgets(content, sizeof(content), stdin);
-                content[strcspn(content, "\n")] = '\0';
-                
-                if (modify_file(filename, content) {
-                    printf("Файл '%s' успешно обновлен\n", filename);
-                } else {
-                    printf("Ошибка при обновлении файла '%s'\n", filename);
-                }
-                break;
-                
-            default:
-                printf("Ошибка: неизвестное действие\n");
+        if (strcmp(command, "создать") == 0 && parsed == 2) {
+            create_file(path);
+        } else if (strcmp(command, "удалить") == 0 && parsed == 2) {
+            delete_file(path);
+        } else if (strcmp(command, "изменить") == 0 && parsed == 2) {
+            edit_file(path);
+        } else if (strcmp(command, "посмотреть") == 0 && parsed == 2) {
+            view_file(path);
+        } else {
+            printf("Неизвестная команда или неверные параметры\n");
         }
     }
-
+    
     return 0;
 }
